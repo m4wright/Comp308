@@ -1,0 +1,23 @@
+; switch to graphics mode (supports ASCII text):
+    mov ah, 0
+    mov al, 13        
+    int 10
+; and then debug command "p 3" to execute the instructions
+
+
+
+
+; switch to text mode:
+    mov ah, 0
+    mov al, 03
+    int 10
+; and then debug command "p 3" to execute the instructions
+
+
+
+
+; to print the character 'A' (in both modes):
+    mov ah, 06
+    mov dl, 41                      ; 41h is the ASCII code for 'A'
+    int 21
+; and then debug command "p 3" to execute the instructions

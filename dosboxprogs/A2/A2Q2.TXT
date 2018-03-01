@@ -1,0 +1,32 @@
+SVGA Info:
+Signature: VESA
+VersionL: 0
+VersionH: 2
+OEM String Address: 101111000000011100000000000000
+
+SVGA Mode Info:
+X Resolution: 640
+Y Resolution: 400
+X Char Size: 8
+Y Char Size: 16
+Bits Per Pixel: 8
+Number of Banks: 1
+Memory Model: 4
+
+
+
+Notes:
+SVGA Info: 
+
+Signature: The signature is suppsed to be VESA.
+Version low and high: this corresponds to SVGA version 2.0, which makes sense.
+OEM String Address: This is the address, printed in binary format, of the OEM String.
+
+SVGA Mode Info:
+Note that this is all for mode 100h
+
+X and Y resolution make sense: this is the resolution for that mode.
+X and Y char size also make sense, since this is the number of pixels for the width and height respectively.
+There are 8 bits per pixel, since this mode has 256 colors, and it takes 8 bits to represent all 256 colors.
+Since this mode doesn't support scan lines, the number of banks is set to 1.
+Memory model 4 represents the packed pixel model, which is the memory model for this mode.
