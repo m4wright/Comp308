@@ -697,10 +697,13 @@ drawFromX:
     push ax
     m EQU ss:[bp-2]
 
- 
+    push m
+    call printInt
+    push OFFSET newLine
+    call puts
 
-    pop bx
-    push bx
+
+    mov bx, m
     mov ax, x1      ; b = y1 - m*x1
     xor dx, dx
     mul bx
@@ -708,6 +711,13 @@ drawFromX:
     sub dx, ax
     push dx
     b EQU ss:[bp-4]
+
+    push b
+    call printInt
+    push OFFSET newLine
+    call puts
+    push OFFSET newLine
+    call puts
     
 
 
@@ -794,8 +804,7 @@ drawFromY:
 
      
 
-    pop bx
-    push bx
+    mov bx, m
     mov ax, y1      ; b = x1 - m*y1
     xor dx, dx
     mul bx
@@ -874,7 +883,7 @@ DRAWLINE:
     sub ax, x2
     cmp ax, 0
     jge .done_abs_x
-    neg cx
+    neg ax
     .done_abs_x:
     mov bx, ax
     
@@ -884,7 +893,7 @@ DRAWLINE:
     sub ax, y2
     cmp ax, 0
     jge .done_abs_y
-    neg cx
+    neg ax
     .done_abs_y:
 
     push y2
@@ -919,13 +928,9 @@ start:
     mov ds, ax
 
     ; set video mode - 320x200 256 color-mode
-    ; mov ax, 4F02h
     ; mov bx, 13h
-    ; int 10h
-
-    mov bx, 13h
-    push bx
-    call SETMODE
+    ; push bx
+    ; call SETMODE
 
     push WORD PTR 0004h
     call SETPENCOLOR
@@ -937,11 +942,11 @@ start:
     ; push 0004h                  ; color
     ; call drawLine_h
 
-    push WORD PTR 190
-    push WORD PTR 260
-    push WORD PTR 190
-    push WORD PTR 60
-    call DRAWLINE
+    ; push WORD PTR 190
+    ; push WORD PTR 260
+    ; push WORD PTR 190
+    ; push WORD PTR 60
+    ; call DRAWLINE
 
 
 
@@ -953,20 +958,20 @@ start:
 
 
 
-    push WORD PTR 110
-    push WORD PTR 260
-    push WORD PTR 190
-    push WORD PTR 260
-    call DRAWLINE 
+    ; push WORD PTR 110
+    ; push WORD PTR 260
+    ; push WORD PTR 190
+    ; push WORD PTR 260
+    ; call DRAWLINE 
 
 
 
 
-    push WORD PTR 110
-    push WORD PTR 60
-    push WORD PTR 110
-    push WORD PTR 260
-    call DRAWLINE
+    ; push WORD PTR 110
+    ; push WORD PTR 60
+    ; push WORD PTR 110
+    ; push WORD PTR 260
+    ; call DRAWLINE
 
 
 
@@ -980,6 +985,7 @@ start:
 
     push WORD PTR 10
     push WORD PTR 160
+    ; push WORD PTR 110
     push WORD PTR 100
     push WORD PTR 60
     call DRAWLINE
@@ -1006,9 +1012,15 @@ start:
     int 16h
 
     ; switch back to text mode
-    mov ax, 4f02h
-    mov bx, 3
-    int 10h
+    ; mov bx, 3
+    ; push bx
+    ; call SETMODE
+    ; mov ax, 4F02h
+    ; mov bx, 3
+    ; int 10h
+    ; mov ax, 4f02h
+    ; mov bx, 3
+    ; int 10h
 
     ; exit
     mov ax, 4C00h
