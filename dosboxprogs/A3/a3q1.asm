@@ -1,11 +1,10 @@
 .286
 .model small
-.stack 100h
+.stack 250h
 .data
     PENCOLOR dw 2
     card_info_buffer db 560 dup(?)
-    mode_x dw 320                     ; x and y resolutions of current mode
-    mode_y dw 200
+    mode_x dw 640                     ; x and y resolutions of current mode
     buffer db 100 dup(?)
     printIntBuffer db 20 dup(?)
 
@@ -565,20 +564,17 @@ GET_CARDINFO:
     mov ax, 4f01h
     int 10h
 
-    xor al, al
-    ; push ax
-    ; call printInt
 
     ; get x and y values
     mov bx, OFFSET card_info_buffer
     mov WORD PTR ax, [bx+12h]
+    cmp ax, 0
+    jne .done_set_mode_x
+    mov ax, 320
+    .done_set_mode_x:
     mov mode_x, ax
-    ; push ax
-    ; call printInt
-    mov WORD PTR ax, [bx+14h]
-    mov mode_y, ax
-    ; push ax
-    ; call printInt
+
+
 
     pop es
     pop di
@@ -633,7 +629,7 @@ DRAWPIXEL:
 
     ; BX = y*320 + x
     mov bx, x1
-    mov cx, 320
+    mov cx, mode_x
     xor dx, dx
     mov ax, y1
     mul cx
@@ -645,6 +641,48 @@ DRAWPIXEL:
 
     ; plot the pixel in the graphics frame buffer
     mov BYTE PTR es:[bx], dl
+
+    pop es
+    pop dx
+    pop cx
+    pop bx
+
+    pop bp
+
+    ret 4
+
+; GETPIXEL(int x, int y)
+; gets the pixel color at position (x,y)
+; returns the color in ax
+GETPIXEL:
+    x1 EQU ss:[bp+4]
+    y1 EQU ss:[bp+6]
+
+    push bp
+    mov bp, sp
+
+    push bx
+    push cx
+    push dx
+    push es
+
+    ; set ES as segment of graphics frame buffer
+    mov ax, 0A000h
+    mov es, ax
+
+
+    ; BX = y*mode_x + x
+    mov bx, x1
+    mov cx, mode_x
+    xor dx, dx
+    mov ax, y1
+    mul cx
+    add bx, ax
+
+    
+    xor ax, ax
+    ; plot the pixel in the graphics frame buffer
+    mov BYTE PTR al, es:[bx]
 
     pop es
     pop dx
@@ -688,19 +726,20 @@ drawFromX:
     ; calculate m and b in y = mx + b
     mov cx, x2      ; delta x
     sub cx, x1
+    
+
 
     mov ax, y2      ; delta y
     sub ax, y1
+
+
 
     cwd             ; m = (delta y) / (delta x)
     idiv cx
     push ax
     m EQU ss:[bp-2]
 
-    push m
-    call printInt
-    push OFFSET newLine
-    call puts
+
 
 
     mov bx, m
@@ -712,12 +751,7 @@ drawFromX:
     push dx
     b EQU ss:[bp-4]
 
-    push b
-    call printInt
-    push OFFSET newLine
-    call puts
-    push OFFSET newLine
-    call puts
+
     
 
 
@@ -734,10 +768,23 @@ drawFromX:
         mul bx          ; ax now holds mx
         add ax, b       ; ax now holds mx + b = y
 
+        push ax
 
         push ax         ; y
         push bx         ; x
         call DRAWPIXEL
+
+        pop ax
+
+        ; push bx
+        ; call printInt
+        ; push ' '
+        ; call putch
+
+        ; push ax
+        ; call printInt
+        ; push OFFSET newLine
+        ; call puts
         
         inc bx
         loopw .draw_x_loop
@@ -921,6 +968,75 @@ DRAWLINE:
     ret 8
 
 
+; SIMPLEFILL(int x, int y, int border_color)
+SIMPLEFILL:
+    push bp
+    mov bp, sp
+
+    x EQU ss:[bp+4]
+    y EQU ss:[bp+6]
+    border_color EQU ss:[bp+8]
+
+    push ax
+    push bx
+    push cx
+
+
+    push y
+    push x
+    call GETPIXEL
+    cmp ax, border_color
+    je .done_simple_fill
+    cmp ax, PENCOLOR
+    je .done_simple_fill
+
+    push y
+    push x
+    call DRAWPIXEL
+
+
+
+    mov cx, y
+    inc cx
+    push border_color
+    push cx
+    push x
+    call SIMPLEFILL
+
+    mov cx, y
+    dec cx
+    push border_color
+    push cx
+    push x
+    call SIMPLEFILL
+
+    
+
+    mov bx, x
+    inc bx
+    push border_color
+    push y
+    push bx
+    call SIMPLEFILL
+
+    mov bx, x
+    dec bx
+    push border_color
+    push y
+    push bx
+    call SIMPLEFILL
+
+
+    .done_simple_fill:
+
+    pop cx
+    pop bx
+    pop ax
+
+    pop bp
+    ret 6
+
+
 
 start:
     ; initialize data segment
@@ -928,83 +1044,49 @@ start:
     mov ds, ax
 
     ; set video mode - 320x200 256 color-mode
-    ; mov bx, 13h
-    ; push bx
-    ; call SETMODE
+    push 13h
+    call SETMODE
 
     push WORD PTR 0004h
     call SETPENCOLOR
 
-    ; ; floor
-    ; push WORD PTR 260           ; x2
-    ; push WORD PTR 190           ; y1
-    ; push WORD PTR 60            ; x1
-    ; push 0004h                  ; color
-    ; call drawLine_h
-
-    ; push WORD PTR 190
-    ; push WORD PTR 260
-    ; push WORD PTR 190
-    ; push WORD PTR 60
-    ; call DRAWLINE
 
 
 
-    ; push WORD PTR 190
-    ; push WORD PTR 60
-    ; push WORD PTR 110
-    ; push WORD PTR 60
-    ; call DRAWLINE
-
-
-
-    ; push WORD PTR 110
-    ; push WORD PTR 260
-    ; push WORD PTR 190
-    ; push WORD PTR 260
-    ; call DRAWLINE 
-
-
-
-
-    ; push WORD PTR 110
-    ; push WORD PTR 60
-    ; push WORD PTR 110
-    ; push WORD PTR 260
-    ; call DRAWLINE
-
-
-
-    ; ; left roof
-    ; push WORD PTR 1             ; up
-    ; push WORD PTR 160           ; x2
-    ; push WORD PTR 110           ; y1
-    ; push WORD PTR 60            ; x1
-    ; push 0006h
-    ; call drawLine_d
 
     push WORD PTR 10
-    push WORD PTR 160
-    ; push WORD PTR 110
-    push WORD PTR 100
     push WORD PTR 60
+    push WORD PTR 10
+    push WORD PTR 120
     call DRAWLINE
 
-    ; ; right roof
-    ; push WORD PTR  1            ; up
-    ; push WORD PTR 160           ; x2
-    ; push WORD PTR 110           ; y1
-    ; push WORD PTR 260           ; x1
-    ; push 0021h
-    ; call drawLine_d
-
-    ; push WORD PTR 10
-    ; push WORD PTR 160
-    ; push WORD PTR 110
-    ; push WORD PTR 260
-    ; call DRAWLINE
+    
 
 
+
+    push WORD PTR 10
+    push WORD PTR 60
+    push WORD PTR 40
+    push WORD PTR 90
+    call DRAWLINE
+
+
+    push WORD PTR 40
+    push WORD PTR 90
+    push WORD PTR 10
+    push WORD PTR 120
+    call DRAWLINE
+
+    push WORD PTR 0001h
+    call SETPENCOLOR
+
+    push 0004h
+    push 15
+    push 90
+    call SIMPLEFILL
+
+    ; push ax
+    ; call printInt
 
 
     ; prompt for a key
@@ -1012,15 +1094,10 @@ start:
     int 16h
 
     ; switch back to text mode
-    ; mov bx, 3
-    ; push bx
-    ; call SETMODE
-    ; mov ax, 4F02h
-    ; mov bx, 3
-    ; int 10h
-    ; mov ax, 4f02h
-    ; mov bx, 3
-    ; int 10h
+    mov bx, 3
+    push bx
+    call SETMODE
+    
 
     ; exit
     mov ax, 4C00h
