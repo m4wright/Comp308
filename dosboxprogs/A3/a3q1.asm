@@ -4,15 +4,21 @@
 .data
     PENCOLOR dw 2
     card_info_buffer db 560 dup(?)
-    mode_x dw 640                     ; x and y resolutions of current mode
+    mode_x dw 640                     ; x resolution of current mode
     buffer db 100 dup(?)
     printIntBuffer db 20 dup(?)
+
+    mode_prompt db "Enter the mode (note: works best with modes 19 and 256): ", 0
+    border_color_prompt db "Enter the border color: ", 0
+    fill_color_prompt db "Enter the fill color: ", 0
 
     newLine db 10, 13, 0
 .code
 
 jmp start
 
+
+; ----------------------------------------------------------- IO CODE FROM PREVIOUS ASSIGNMENTS ----------------------------------------------------------- ;
 
 ; char getche(void)
 ;   reads a character from the keyboard and puts it in DL
@@ -188,9 +194,6 @@ puts:
         ret 2
 
 
-
-
-; ---------------------------------- A2 ---------------------------------- ;
 
 
 ; int atoi(char *s)
@@ -496,6 +499,18 @@ printInt:
 
     ret 2
 
+
+
+
+
+
+
+
+; ----------------------------------------------------------- CODE FOR A3 ----------------------------------------------------------- ;
+
+
+
+
 ; SETMODE
 ; sets the graphics mode
 ; on failure, resets to standard text mode and returns false (0) in al
@@ -625,9 +640,8 @@ DRAWPIXEL:
     mov ax, 0A000h
     mov es, ax
 
-    ; TODO: Find actual value instead of 320 (different for different modes)
 
-    ; BX = y*320 + x
+    ; BX = y*mode_x + x
     mov bx, x1
     mov cx, mode_x
     xor dx, dx
@@ -844,11 +858,6 @@ drawFromY:
     push ax
     m EQU ss:[bp-2]
     
-    ; push m
-    ; call printInt
-    ; push ' '
-    ; call putch
-
      
 
     mov bx, m
@@ -859,14 +868,6 @@ drawFromY:
     sub dx, ax
     push dx
     b EQU ss:[bp-4]
-
-    ; push b
-    ; call printInt
-    ; push OFFSET newLine
-    ; call puts
-    ; push OFFSET newLine
-    ; call puts
-  
 
 
 
@@ -889,15 +890,6 @@ drawFromY:
 
         pop ax
 
-        ; push ax
-        ; call printInt
-        ; push ' '
-        ; call putch
-
-        ; push bx
-        ; call printInt
-        ; push OFFSET newLine
-        ; call puts
         
         inc bx
         ; jmp done_y_loop
@@ -1043,26 +1035,36 @@ start:
     mov ax, @data
     mov ds, ax
 
-    ; set video mode - 320x200 256 color-mode
-    push 13h
+    push OFFSET mode_prompt
+    call puts
+    call getInt
+    mov bx, ax
+
+    push OFFSET border_color_prompt
+    call puts
+    call getInt
+    push ax
+
+    push ax
+    call SETPENCOLOR
+
+    push OFFSET fill_color_prompt
+    call puts
+    call getInt
+    push ax
+
+
+    push bx
     call SETMODE
 
-    push WORD PTR 0004h
-    call SETPENCOLOR
-
-
-
-
-
-    push WORD PTR 10
-    push WORD PTR 60
-    push WORD PTR 10
-    push WORD PTR 120
-    call DRAWLINE
-
     
+    ; draw the triangle border
 
-
+    push WORD PTR 10
+    push WORD PTR 60
+    push WORD PTR 10
+    push WORD PTR 120
+    call DRAWLINE
 
     push WORD PTR 10
     push WORD PTR 60
@@ -1070,23 +1072,21 @@ start:
     push WORD PTR 90
     call DRAWLINE
 
-
     push WORD PTR 40
     push WORD PTR 90
     push WORD PTR 10
     push WORD PTR 120
     call DRAWLINE
 
-    push WORD PTR 0001h
+
+    ; the fill color is on the top of the stack
     call SETPENCOLOR
 
-    push 0004h
-    push 15
+    ; the border color is on top of the stack
+    push 15                     ; interior point of the above triangle
     push 90
     call SIMPLEFILL
 
-    ; push ax
-    ; call printInt
 
 
     ; prompt for a key
