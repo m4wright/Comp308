@@ -159,23 +159,6 @@ void drawHouse(point bottomLeft, point bottomRight, double height, color houseCo
    
     point topRoof = {(bottomLeft.x + bottomRight.x) / 2.0, roofHeight + mainTopLeft.y};
     
-    
-    // glColor3b(houseColor.red, houseColor.green, houseColor.blue);
-    // double lineWidth = 0.012;
-    // glLineWidth(100);
-    // glBegin(GL_LINES);
-    //     glVertex2f(bottomLeft.x - lineWidth, bottomLeft.y);
-    //     glVertex2f(bottomRight.x + lineWidth + 0.001, bottomRight.y);
-
-    //     glVertex2f(bottomRight.x, bottomRight.y);
-    //     glVertex2f(mainTopRight.x, mainTopRight.y);
-
-    //     // glVertex2f(mainTopRight.x + lineWidth + 0.001, mainTopRight.y);
-    //     // glVertex2f(mainTopLeft.x - lineWidth - 0.001, mainTopLeft.y);
-
-    //     glVertex2f(mainTopLeft.x, mainTopLeft.y);
-    //     glVertex2f(bottomLeft.x, bottomLeft.y);
-    // glEnd();
 
     drawRectangle(bottomLeft, mainTopRight, houseColor);
 
@@ -183,12 +166,16 @@ void drawHouse(point bottomLeft, point bottomRight, double height, color houseCo
     mainTopLeft.x -= roofOverShoot;
     mainTopRight.x += roofOverShoot;
 
-    // mainTopLeft.y -= roofOverShoot;
-    // mainTopRight.y -= roofOverShoot;
-
-
     drawTriangle(mainTopLeft, mainTopRight, topRoof, houseColor);
-    
+
+    // door
+    double midpoint = (bottomLeft.x + bottomRight.x) / 2;
+    double doorWidth = 0.15;
+    double doorHeight = 0.25;
+    point bottomLeftDoor = {midpoint - doorWidth/2, bottomLeft.y};
+    point topRightDoor = {midpoint + doorWidth/2, bottomLeft.y + doorHeight};
+    color black = {0,0,0};
+    drawRectangle(bottomLeftDoor, topRightDoor, black);
 }
 
 void draw()
@@ -210,8 +197,8 @@ void draw()
     point houseBottomLeft = {0.2, -0.4};
     point houseBottomRight = {0.8, -0.4};
     double houseHeight = 0.7;
-    color black = {0,0,0};
-    drawHouse(houseBottomLeft, houseBottomRight, houseHeight, black);
+    color houseColor = {138/2, 51/2, 53/2};
+    drawHouse(houseBottomLeft, houseBottomRight, houseHeight, houseColor);
 
     glFlush();
 }
